@@ -186,7 +186,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             image_obs = image_obs / 255.0
         if self.transpose:
             image_obs = image_obs.transpose()
-        assert image_obs.shape[0] == self.channels
+        #assert image_obs.shape[0] == self.channels
         return image_obs.flatten()
 
     def render(self, mode='wrapped'):
