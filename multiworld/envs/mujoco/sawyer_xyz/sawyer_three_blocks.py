@@ -138,7 +138,7 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         block_positions = self.get_block_positions()
         gripper_position = self.get_gripper_pos()
 
-        flat_obs = np.concatenate((hand_position, block_positions, gripper_position))
+        flat_obs = np.concatenate((gripper_position, hand_position, block_positions))
         previous_goal = self._state_goal
         return dict(
             observation=flat_obs,
@@ -154,16 +154,16 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             proprio_achieved_goal=flat_obs)
 
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation(action[3:])
+        self.set_xyz_action(action[1:4])
+        self.do_simulation(action[0:1] / 10.0)
         new_block_positions = self.get_block_positions()
 
-        new_block_positions[:3] = np.clip(
-            new_block_positions[:3], self.block_low, self.block_high)
-        new_block_positions[3:6] = np.clip(
-            new_block_positions[3:6], self.block_low, self.block_high)
-        new_block_positions[6:] = np.clip(
-            new_block_positions[6:], self.block_low, self.block_high)
+        #new_block_positions[:3] = np.clip(
+        #    new_block_positions[:3], self.block_low, self.block_high)
+        #new_block_positions[3:6] = np.clip(
+        #    new_block_positions[3:6], self.block_low, self.block_high)
+        #new_block_positions[6:] = np.clip(
+        #    new_block_positions[6:], self.block_low, self.block_high)
 
         self.set_block_positions(new_block_positions)
         self.last_block_positions = new_block_positions.copy()

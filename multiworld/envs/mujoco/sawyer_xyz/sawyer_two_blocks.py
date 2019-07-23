@@ -80,12 +80,12 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.sampling_space = Box(
             np.hstack(([0.0], self.hand_low, self.block_low, block_two_low)),
-            np.hstack(([0.04], self.hand_high, block_one_high, self.block_high)),
+            np.hstack(([0.01], self.hand_high, block_one_high, self.block_high)),
             dtype=np.float32)
 
         self.gripper_and_hand_and_blocks_space = Box(
             np.hstack(([0.0], self.hand_low, self.block_low, self.block_low)),
-            np.hstack(([0.04], self.hand_high, self.block_high, self.block_high)),
+            np.hstack(([0.01], self.hand_high, self.block_high, self.block_high)),
             dtype=np.float32)
 
         self.observation_space = Dict([
@@ -130,7 +130,7 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         block_positions = self.get_block_positions()
         gripper_position = self.get_gripper_pos()
 
-        flat_obs = np.concatenate((hand_position, block_positions, gripper_position))
+        flat_obs = np.concatenate((gripper_position, hand_position, block_positions))
         previous_goal = self._state_goal
         return dict(
             observation=flat_obs,
@@ -146,14 +146,14 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             proprio_achieved_goal=flat_obs)
 
     def step(self, action):
-        self.set_xyz_action(action[:3])
-        self.do_simulation(action[3:])
+        self.set_xyz_action(action[1:4])
+        self.do_simulation(action[0:1] / 10.0)
         new_block_positions = self.get_block_positions()
 
-        new_block_positions[:3] = np.clip(
-            new_block_positions[:3], self.block_low, self.block_high)
-        new_block_positions[3:] = np.clip(
-            new_block_positions[3:], self.block_low, self.block_high)
+        #new_block_positions[:3] = np.clip(
+        #    new_block_positions[:3], self.block_low, self.block_high)
+        #new_block_positions[3:] = np.clip(
+        #    new_block_positions[3:], self.block_low, self.block_high)
 
         self.set_block_positions(new_block_positions)
         self.last_block_positions = new_block_positions.copy()
