@@ -601,8 +601,20 @@ def register_mujoco_envs():
     """
 
     register(
-        id='SawyerTwoBlockXYZEnv-v0',
-        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_two_block:SawyerTwoBlockXYZEnv',
+        id='SawyerTwoBlocksXYZEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_two_blocks:SawyerTwoBlocksXYZEnv',
+        tags={
+            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
+            'author': 'brandon'
+        },
+        kwargs={
+            'hide_goal_markers': False
+        },
+    )
+
+    register(
+        id='SawyerThreeBlocksXYZEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_three_blocks:SawyerThreeBlocksXYZEnv',
         tags={
             'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
             'author': 'brandon'

@@ -9,7 +9,7 @@ from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from multiworld.envs.mujoco.cameras import sawyer_block_stacking_camera
 
 
-class SawyerTwoBlockXYZEnv(MultitaskEnv, SawyerXYZEnv):
+class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
 
@@ -42,7 +42,7 @@ class SawyerTwoBlockXYZEnv(MultitaskEnv, SawyerXYZEnv):
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(
             self,
-            model_name=get_asset_full_path('sawyer_xyz/two_block_stack.xml'),
+            model_name=get_asset_full_path('sawyer_xyz/two_blocks.xml'),
             **kwargs)
 
         self.block_low = np.array(block_low)
@@ -71,6 +71,15 @@ class SawyerTwoBlockXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]), np.array([1, 1, 1, 1]), dtype=np.float32)
+
+        midpoint = (self.block_low[0] + self.block_high[0]) / 2.0
+        block_one_high = [midpoint, *self.block_high[1:]]
+        block_two_low = [midpoint, *self.block_low[1:]]
+
+        self.sampling_space = Box(
+            np.hstack(([0.0], self.hand_low, self.block_low, block_two_low)),
+            np.hstack(([0.04], self.hand_high, block_one_high, self.block_high)),
+            dtype=np.float32)
 
         self.gripper_and_hand_and_blocks_space = Box(
             np.hstack(([0.0], self.hand_low, self.block_low, self.block_low)),
@@ -156,7 +165,7 @@ class SawyerTwoBlockXYZEnv(MultitaskEnv, SawyerXYZEnv):
         if self.reset_free:
             initial_pose = self.get_observation()["observation"]
         else:
-            initial_pose = self.gripper_and_hand_and_blocks_space.sample()
+            initial_pose = self.sampling_space.sample()
 
         # TODO: is this for loop really necessary?
         for _ in range(10):
@@ -194,7 +203,6 @@ class SawyerTwoBlockXYZEnv(MultitaskEnv, SawyerXYZEnv):
             'state_desired_goal': self._state_goal}
 
     def set_goal(self, goal):
-        print(goal)
         self._state_goal = goal['state_desired_goal']
         self.update_goal_markers(self._state_goal)
 
@@ -281,9 +289,11 @@ if __name__ == "__main__":
     import multiworld.envs.mujoco as m
     m.register_mujoco_envs()
     import gym
-    x = gym.make("SawyerTwoBlockXYZEnv-v0")
+    x = gym.make("SawyerTwoBlocksXYZEnv-v0")
     import time
     while True:
-        time.sleep(0.05)
-        x.render()
-        x.step(x.action_space.sample())
+        x.reset()
+        for i in range(100):
+            time.sleep(0.05)
+            x.render()
+            x.step(x.action_space.sample())
