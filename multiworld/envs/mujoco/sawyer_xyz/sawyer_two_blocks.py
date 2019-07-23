@@ -16,8 +16,8 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             block_low=(-0.2, 0.55, 0.02),
             block_high=(0.2, 0.75, 0.02),
 
-            hand_low=(-0.2, 0.6, 0.05),
-            hand_high=(0.2, 0.6, 0.3),
+            hand_low=(-0.2, 0.55, 0.05),
+            hand_high=(0.2, 0.75, 0.3),
 
             stack_goal_low=(-0.2, 0.55, 0.02),
             stack_goal_high=(0.2, 0.75, 0.02),
@@ -36,13 +36,15 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             hide_goal_markers=False,
             oracle_reset_prob=0.0,
 
+            xml_path='sawyer_xyz/two_blocks.xml',
+
             **kwargs
     ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(
             self,
-            model_name=get_asset_full_path('sawyer_xyz/two_blocks.xml'),
+            model_name=get_asset_full_path(xml_path),
             **kwargs)
 
         self.block_low = np.array(block_low)
