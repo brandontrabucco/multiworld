@@ -596,6 +596,22 @@ def register_mujoco_envs():
         },
     )
 
+    """
+    ICRA Envs
+    """
+
+    register(
+        id='SawyerTwoBlockXYZEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_two_block:SawyerTwoBlockXYZEnv',
+        tags={
+            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
+            'author': 'brandon'
+        },
+        kwargs={
+            'hide_goal_markers': False
+        },
+    )
+
 
 def create_image_48_sawyer_reach_xy_env_v1(**kwargs):
     from multiworld.core.image_env import ImageEnv

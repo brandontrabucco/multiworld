@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+    <include file="shared_config.xml"></include>
+    <worldbody>
+        <include file="sawyer_xyz_base.xml"></include>
+        <!-- -0.2, 0.55, 0.05,        0.2, 0.75, 0.3 -->
+        <body name="blockOne" pos="-0.15 0.6 0.1">
+            <joint name="blockOneJoint" type="free" limited='false' damping="0" armature="0"/>
+            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
+            <geom name="blockOneGeom" type="box" pos="0 0 0" margin="0.001"
+                  size="0.02 0.02 0.02" rgba="0.4 0 0 1"
+                  contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
+            />
+        </body>
+        <body name="blockTwo" pos="0.15 0.6 0.1">
+            <joint name="blockTwoJoint" type="free" limited='false' damping="0" armature="0"/>
+            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
+            <geom name="blockTwoGeom" type="box" pos="0 0 0" margin="0.001"
+                  size="0.02 0.02 0.02" rgba="0.8 0 0 1"
+                  contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
+            />
+        </body>
+        <site name="blockOneGoal" pos="0 0.55 0.02" size="0.015"
+              rgba="0.4 0 0 1"/>
+        <site name="blockTwoGoal" pos="0 0.55 0.06" size="0.015"
+              rgba="0.8 0 0 1"/>
+        <site name="handGoal" pos="0 0.75 0.3" size="0.015"
+              rgba="0 0.8 0 1"/>
+    </worldbody>
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="rc_close" kp="400"  user="1"/>
+    </actuator>
+</mujoco>
