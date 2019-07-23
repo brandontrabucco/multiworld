@@ -19,10 +19,10 @@ class SawyerThreeBlocksShelfXYZEnv(SawyerThreeBlocksXYZEnv):
             hand_high=(0.2, 0.65, 0.3),
 
             stack_goal_low=(-0.2, 0.55, 0.02),
-            stack_goal_high=(0.2, 0.65, 0.02),
+            stack_goal_high=(0.2, 0.6, 0.02),
 
             hand_goal_low=(-0.2, 0.55, 0.3),
-            hand_goal_high=(0.2, 0.65, 0.3),
+            hand_goal_high=(0.2, 0.75, 0.3),
 
             fix_goal=False,
             fixed_stack_goal=(0.0, 0.55, 0.02),
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     import multiworld.envs.mujoco as m
     m.register_mujoco_envs()
     import gym
-    x = gym.make("SawyerThreeBlocksShelfXYZEnv-v0")
+    x = gym.make("ImageSawyerThreeBlocksShelfXYZEnv-v0")
     import time
     while True:
         x.reset()

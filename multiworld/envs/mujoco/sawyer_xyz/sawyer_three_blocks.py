@@ -287,7 +287,7 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             block_three_reward = -block_three_goal_distances
             additional_reward = -(hand_block_one_distances +
                                   hand_block_two_distances +
-                                  hand_block_three_distances)
+                                  hand_block_three_distances) / 3.0
 
         return (hand_reward + block_one_reward +
                 block_two_reward + block_three_reward +
@@ -305,14 +305,14 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         base_state, goal = state
         super().set_env_state(base_state)
         self._state_goal = goal
-        self._set_goal_marker(goal)
+        self.update_goal_markers(goal)
 
 if __name__ == "__main__":
 
     import multiworld.envs.mujoco as m
     m.register_mujoco_envs()
     import gym
-    x = gym.make("SawyerThreeBlocksXYZEnv-v0")
+    x = gym.make("ImageSawyerThreeBlocksXYZEnv-v0")
     import time
     while True:
         x.reset()

@@ -49,7 +49,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         """
         self.quick_init(locals())
         super().__init__(wrapped_env)
-        self.wrapped_env.hide_goal_markers = True
         self.imsize = imsize
         self.init_camera = init_camera
         self.transpose = transpose
@@ -189,7 +188,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         #assert image_obs.shape[0] == self.channels
         return image_obs.flatten()
 
-    def render(self, mode='wrapped'):
+    def render(self, mode='cv2'):
         if mode == 'wrapped':
             self.wrapped_env.render()
         elif mode == 'cv2':
@@ -197,8 +196,10 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 self._last_image = self._wrapped_env.get_image(
                     width=self.imsize,
                     height=self.imsize,
-                )
-            cv2.imshow('ImageEnv', self._last_image)
+            )
+            _image = np.flip(self._last_image, axis=0)
+            _image = np.flip(_image, axis=2)
+            cv2.imshow('ImageEnv', _image)
             cv2.waitKey(1)
         else:
             raise ValueError("Invalid render mode: {}".format(mode))

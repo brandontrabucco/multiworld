@@ -613,6 +613,19 @@ def register_mujoco_envs():
     )
 
     register(
+        id='ImageSawyerTwoBlocksXYZEnv-v0',
+        entry_point=create_image_sawyer_two_blocks_env_v0,
+        tags={
+            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
+            'author': 'brandon',
+        },
+        kwargs={
+            "image_size": 512,
+            'hide_goal_markers': False
+        },
+    )
+
+    register(
         id='SawyerThreeBlocksXYZEnv-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_three_blocks:SawyerThreeBlocksXYZEnv',
         tags={
@@ -620,6 +633,19 @@ def register_mujoco_envs():
             'author': 'brandon'
         },
         kwargs={
+            'hide_goal_markers': False
+        },
+    )
+
+    register(
+        id='ImageSawyerThreeBlocksXYZEnv-v0',
+        entry_point=create_image_sawyer_three_blocks_env_v0,
+        tags={
+            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
+            'author': 'brandon',
+        },
+        kwargs={
+            "image_size": 512,
             'hide_goal_markers': False
         },
     )
@@ -637,6 +663,19 @@ def register_mujoco_envs():
     )
 
     register(
+        id='ImageSawyerTwoBlocksShelfXYZEnv-v0',
+        entry_point=create_image_sawyer_two_blocks_shelf_env_v0,
+        tags={
+            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
+            'author': 'brandon',
+        },
+        kwargs={
+            "image_size": 512,
+            'hide_goal_markers': False
+        },
+    )
+
+    register(
         id='SawyerThreeBlocksShelfXYZEnv-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_three_blocks_shelf:SawyerThreeBlocksShelfXYZEnv',
         tags={
@@ -646,6 +685,75 @@ def register_mujoco_envs():
         kwargs={
             'hide_goal_markers': False
         },
+    )
+
+    register(
+        id='ImageSawyerThreeBlocksShelfXYZEnv-v0',
+        entry_point=create_image_sawyer_three_blocks_shelf_env_v0,
+        tags={
+            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
+            'author': 'brandon',
+        },
+        kwargs={
+            "image_size": 512,
+            'hide_goal_markers': False
+        },
+    )
+
+
+def create_image_sawyer_two_blocks_env_v0(image_size=48, **kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_block_stacking_camera
+
+    wrapped_env = gym.make('SawyerTwoBlocksXYZEnv-v0', **kwargs)
+    return ImageEnv(
+        wrapped_env,
+        image_size,
+        init_camera=sawyer_block_stacking_camera,
+        transpose=False,
+        normalize=True,
+    )
+
+
+def create_image_sawyer_three_blocks_env_v0(image_size=48, **kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_block_stacking_camera
+
+    wrapped_env = gym.make('SawyerThreeBlocksXYZEnv-v0', **kwargs)
+    return ImageEnv(
+        wrapped_env,
+        image_size,
+        init_camera=sawyer_block_stacking_camera,
+        transpose=False,
+        normalize=True,
+    )
+
+
+def create_image_sawyer_two_blocks_shelf_env_v0(image_size=48, **kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_block_stacking_camera
+
+    wrapped_env = gym.make('SawyerTwoBlocksShelfXYZEnv-v0', **kwargs)
+    return ImageEnv(
+        wrapped_env,
+        image_size,
+        init_camera=sawyer_block_stacking_camera,
+        transpose=False,
+        normalize=True,
+    )
+
+
+def create_image_sawyer_three_blocks_shelf_env_v0(image_size=48, **kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_block_stacking_camera
+
+    wrapped_env = gym.make('SawyerThreeBlocksShelfXYZEnv-v0', **kwargs)
+    return ImageEnv(
+        wrapped_env,
+        image_size,
+        init_camera=sawyer_block_stacking_camera,
+        transpose=False,
+        normalize=True,
     )
 
 
