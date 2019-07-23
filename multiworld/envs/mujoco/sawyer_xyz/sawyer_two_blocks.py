@@ -295,5 +295,5 @@ if __name__ == "__main__":
         x.reset()
         for i in range(100):
             time.sleep(0.05)
-            x.render()
             x.step(x.action_space.sample())
+            x.render()
