@@ -620,8 +620,8 @@ def register_mujoco_envs():
             'author': 'brandon',
         },
         kwargs={
-            "image_size": 512,
-            'hide_goal_markers': False
+            "image_size": 64,
+            'hide_goal_markers': True
         },
     )
 
@@ -645,8 +645,8 @@ def register_mujoco_envs():
             'author': 'brandon',
         },
         kwargs={
-            "image_size": 512,
-            'hide_goal_markers': False
+            "image_size": 64,
+            'hide_goal_markers': True
         },
     )
 
@@ -670,8 +670,8 @@ def register_mujoco_envs():
             'author': 'brandon',
         },
         kwargs={
-            "image_size": 512,
-            'hide_goal_markers': False
+            "image_size": 64,
+            'hide_goal_markers': True
         },
     )
 
@@ -695,8 +695,8 @@ def register_mujoco_envs():
             'author': 'brandon',
         },
         kwargs={
-            "image_size": 512,
-            'hide_goal_markers': False
+            "image_size": 64,
+            'hide_goal_markers': True
         },
     )
 

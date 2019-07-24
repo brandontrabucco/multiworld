@@ -74,7 +74,7 @@ if __name__ == "__main__":
     import multiworld.envs.mujoco as m
     m.register_mujoco_envs()
     import gym
-    x = gym.make("ImageSawyerTwoBlocksShelfXYZEnv-v0")
+    x = gym.make("SawyerTwoBlocksShelfXYZEnv-v0")
     import time
     while True:
         x.reset()

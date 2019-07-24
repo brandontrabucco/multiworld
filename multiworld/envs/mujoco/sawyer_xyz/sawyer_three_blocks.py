@@ -131,6 +131,7 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         if self.hide_goal_markers:
             self.data.site_xpos[self.model.site_name2id('handGoal'), 2] = -1000
             self.data.site_xpos[self.model.site_name2id('blockOneGoal'), 2] = -1000
+            self.data.site_xpos[self.model.site_name2id('blockTwoGoal'), 2] = -1000
             self.data.site_xpos[self.model.site_name2id('blockThreeGoal'), 2] = -1000
 
     def get_observation(self):
@@ -155,15 +156,8 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def step(self, action):
         self.set_xyz_action(action[1:4])
-        self.do_simulation(action[0:1] / 10.0)
+        self.do_simulation([action[0], -action[0]])
         new_block_positions = self.get_block_positions()
-
-        #new_block_positions[:3] = np.clip(
-        #    new_block_positions[:3], self.block_low, self.block_high)
-        #new_block_positions[3:6] = np.clip(
-        #    new_block_positions[3:6], self.block_low, self.block_high)
-        #new_block_positions[6:] = np.clip(
-        #    new_block_positions[6:], self.block_low, self.block_high)
 
         self.set_block_positions(new_block_positions)
         self.last_block_positions = new_block_positions.copy()
@@ -198,7 +192,7 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         for _ in range(30):
             self.data.set_mocap_pos('mocap', initial_pose[1:4])
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation(np.array([-1]))
+            self.do_simulation(np.array([-1, 1]))
 
         self.set_block_positions(initial_pose[4:])
         for _ in range(10):
@@ -312,7 +306,7 @@ if __name__ == "__main__":
     import multiworld.envs.mujoco as m
     m.register_mujoco_envs()
     import gym
-    x = gym.make("ImageSawyerThreeBlocksXYZEnv-v0")
+    x = gym.make("SawyerThreeBlocksXYZEnv-v0")
     import time
     while True:
         x.reset()

@@ -216,7 +216,7 @@ def sawyer_init_camera_zoomed_in(camera):
 def sawyer_block_stacking_camera(camera):
     camera.lookat[0] = .0
     camera.lookat[1] = .6
-    camera.lookat[2] = .07
+    camera.lookat[2] = .1
     camera.distance = .7
     camera.elevation = -20
     camera.azimuth = 25
