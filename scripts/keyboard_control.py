@@ -22,29 +22,27 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
 import pygame
 from pygame.locals import QUIT, KEYDOWN
 
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
-    SawyerReachXYZEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_three_blocks import SawyerThreeBlocksXYZEnv
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
 
 
 char_to_action = {
-    'w': np.array([0, -1, 0, 0]),
-    'a': np.array([1, 0, 0, 0]),
-    's': np.array([0, 1, 0, 0]),
-    'd': np.array([-1, 0, 0, 0]),
-    'q': np.array([1, -1, 0, 0]),
-    'e': np.array([-1, -1, 0, 0]),
-    'z': np.array([1, 1, 0, 0]),
-    'c': np.array([-1, 1, 0, 0]),
-    'k': np.array([0, 0, 1, 0]),
-    'j': np.array([0, 0, -1, 0]),
+    'w': np.array([0, 0, 1, 0]),
+    'a': np.array([0, -1, 0, 0]),
+    's': np.array([0, 0, -1, 0]),
+    'd': np.array([0, 1, 0, 0]),
+    'q': np.array([0, 1, -1, 0]),
+    'e': np.array([0, -1, -1, 0]),
+    'z': np.array([0, 1, 1, 0]),
+    'c': np.array([0, -1, 1, 0]),
+    'k': np.array([0, 0, 0, 1]),
+    'j': np.array([0, 0, 0, -1]),
     'h': 'close',
     'l': 'open',
     'x': 'toggle',
-    'r': 'reset',
-    'p': 'put obj in hand',
+    'r': 'reset'
 }
 
 
@@ -64,15 +62,15 @@ import pygame
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerReachXYEnv()
+env = SawyerThreeBlocksXYZEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
-action = np.zeros(10)
+action = np.zeros(4)
 while True:
     done = False
     if not lock_action:
-        action[:3] = 0
+        action[1:4] = 0
     for event in pygame.event.get():
         event_happened = True
         if event.type == QUIT:
@@ -85,18 +83,15 @@ while True:
             elif new_action == 'reset':
                 done = True
             elif new_action == 'close':
-                action[3] = 1
+                action[0] = 1
             elif new_action == 'open':
-                action[3] = -1
-            elif new_action == 'put obj in hand':
-                print("putting obj in hand")
-                env.put_obj_in_hand()
-                action[3] = 1
+                action[0] = -1
             elif new_action is not None:
-                action[:3] = new_action[:3]
+                action[1:4] = new_action[1:4]
             else:
-                action = np.zeros(3)
-    env.step(action[:2])
+                action[1:4] = np.zeros(3)
+    obs, reward, _done, _info = env.step(action[:4])
+    print(reward)
     if done:
         obs = env.reset()
     env.render()

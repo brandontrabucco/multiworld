@@ -22,9 +22,6 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             stack_goal_low=(-0.2, 0.55, 0.02),
             stack_goal_high=(0.2, 0.75, 0.02),
 
-            hand_goal_low=(-0.2, 0.55, 0.3),
-            hand_goal_high=(0.2, 0.75, 0.3),
-
             fix_goal=False,
             fixed_stack_goal=(0.0, 0.55, 0.02),
             fixed_hand_goal=(0.0, 0.75, 0.3),
@@ -57,12 +54,8 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.stack_goal_low = np.array(stack_goal_low)
         self.stack_goal_high = np.array(stack_goal_high)
 
-        self.hand_goal_low = np.array(hand_goal_low)
-        self.hand_goal_high = np.array(hand_goal_high)
-
         self.fix_goal = fix_goal
         self.fixed_stack_goal = np.array(fixed_stack_goal)
-        self.fixed_hand_goal = np.array(fixed_hand_goal)
 
         self.use_sparse_reward = use_sparse_reward
         self.sparse_reward_threshold = sparse_reward_threshold
@@ -214,17 +207,13 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
     def sample_goals(self, batch_size):
         if self.fix_goal:
-            hand_goals = np.repeat(self.fixed_hand_goal.copy()[None], batch_size, 0)
             stack_goals = np.repeat(self.fixed_stack_goal.copy()[None], batch_size, 0)
         else:
-            hand_goals = np.random.uniform(
-                self.hand_goal_low,
-                self.hand_goal_high,
-                size=(batch_size, self.hand_goal_low.size))
             stack_goals = np.random.uniform(
                 self.stack_goal_low,
                 self.stack_goal_high,
                 size=(batch_size, self.stack_goal_low.size))
+        hand_goals = stack_goals + np.array([0.0, 0.0, 6.0 * self.block_radius])
         goals = np.hstack((
             np.repeat([[0.0]], batch_size, 0),
             hand_goals,

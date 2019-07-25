@@ -9,7 +9,7 @@
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="blockOneGeom" type="box" pos="0 0 0" margin="0.001"
                   size="0.02 0.02 0.02" rgba="0.4 0 0 1"
-                  contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
+                  contype="1" conaffinity="1" condim="3" friction="8 0.4 0.004"
             />
         </body>
         <body name="blockTwo" pos="0.0 0.6 0.1">
@@ -17,7 +17,7 @@
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="blockTwoGeom" type="box" pos="0 0 0" margin="0.001"
                   size="0.02 0.02 0.02" rgba="0.6 0 0 1"
-                  contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002" 
+                  contype="1" conaffinity="1" condim="3" friction="8 0.4 0.004"
             />
         </body>
         <body name="blockThree" pos="0.15 0.6 0.1">
@@ -25,7 +25,7 @@
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="blockThreeGeom" type="box" pos="0 0 0" margin="0.001"
                   size="0.02 0.02 0.02" rgba="0.8 0 0 1"
-                  contype="1" conaffinity="1" condim="3" friction="2 0.1 0.002"
+                  contype="1" conaffinity="1" condim="3" friction="8 0.4 0.004"
             />
         </body>
         <site name="blockOneGoal" pos="0 0.55 0.02" size="0.015"
