@@ -15,14 +15,11 @@ class SawyerThreeBlocksShelfXYZEnv(SawyerThreeBlocksXYZEnv):
             block_low=(-0.2, 0.65, 0.15),
             block_high=(0.2, 0.75, 0.15),
 
-            hand_low=(-0.2, 0.55, 0.05),
-            hand_high=(0.2, 0.65, 0.3),
+            hand_low=(0.0, 0.55, 0.3),
+            hand_high=(0.0, 0.55, 0.3),
 
             stack_goal_low=(-0.2, 0.55, 0.02),
             stack_goal_high=(0.2, 0.6, 0.02),
-
-            hand_goal_low=(-0.2, 0.55, 0.3),
-            hand_goal_high=(0.2, 0.75, 0.3),
 
             fix_goal=False,
             fixed_stack_goal=(0.0, 0.55, 0.02),
@@ -48,9 +45,6 @@ class SawyerThreeBlocksShelfXYZEnv(SawyerThreeBlocksXYZEnv):
 
             stack_goal_low=stack_goal_low,
             stack_goal_high=stack_goal_high,
-
-            hand_goal_low=hand_goal_low,
-            hand_goal_high=hand_goal_high,
 
             fix_goal=fix_goal,
             fixed_stack_goal=fixed_stack_goal,

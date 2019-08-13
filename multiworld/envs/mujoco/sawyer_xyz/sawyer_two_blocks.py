@@ -219,47 +219,31 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             'state_desired_goal': goals}
 
     def compute_rewards(self, actions, obs):
-        """
+        # Required by HER-TD3
+        assert isinstance(obs, dict) == True
+        rewards = [
+            self.compute_reward(actions, {
+                key: value[i] for key, value in obs.items()})[0]
+            for i in range(obs["observation"].shape[0])
+        ]
+        return np.array(rewards)
 
-REWARD spec:
-
-(1) reward policy for reaching at a fixed height at
-    the proper XY position above the block, with an open gripper
-
-(2) reward the policy for reaching down to the object
-    and closing the gripper
-
-(3) reward the policy for continuing to grasp the object
-    detected with a pressure sensor in Mujoco
-    at a target height
-
-(4) reward the policy for carrying the object to a desired XY location
-    continuing to grip the object
-
-(5) reward the policy for moving the object to the target place location
-    opening the gripper
-
-(6) reward the policy for reaching up from the drop position
-
-(7) repeat for up to K other blocks
-
-        """
-
+    def compute_reward(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
 
-        gripper_position = achieved_goals[:, 0]
-        hand_position = achieved_goals[:, 1:4]
-        block_one_position = achieved_goals[:, 4:7]
-        block_two_position = achieved_goals[:, 7:10]
+        gripper_position = achieved_goals[0]
+        hand_position = achieved_goals[1:4]
+        block_one_position = achieved_goals[4:7]
+        block_two_position = achieved_goals[7:10]
 
-        gripper_goal = desired_goals[:, 0]
-        hand_goal = desired_goals[:, 1:4]
-        block_one_goal = desired_goals[:, 4:7]
-        block_two_goal = desired_goals[:, 7:10]
+        gripper_goal = desired_goals[0]
+        hand_goal = desired_goals[1:4]
+        block_one_goal = desired_goals[4:7]
+        block_two_goal = desired_goals[7:10]
 
-        block_one_distance = np.linalg.norm((block_one_position - block_one_goal), axis=1, ord=2)
-        block_two_distance = np.linalg.norm((block_two_position - block_two_goal), axis=1, ord=2)
+        block_one_distance = np.linalg.norm((block_one_position - block_one_goal), ord=2)
+        block_two_distance = np.linalg.norm((block_two_position - block_two_goal), ord=2)
 
         block_one_stacked = block_one_distance < 0.05
         block_two_stacked = block_two_distance < 0.05
@@ -274,14 +258,14 @@ REWARD spec:
             selected_goal = block_two_goal
             base_reward = base_reward - 500.0
 
-        reach_distance_xy = np.linalg.norm((selected_block[:2] - hand_position[:2]), axis=1, ord=2)
-        reach_distance = np.linalg.norm((selected_block - hand_position), axis=1, ord=2)
+        reach_distance_xy = np.linalg.norm((selected_block[:2] - hand_position[:2]), ord=2)
+        reach_distance = np.linalg.norm((selected_block - hand_position),  ord=2)
 
         above_block = reach_distance_xy < 0.05
         arrived_to_block = reach_distance < 0.05
 
         target_height = 0.3
-        z_distance = np.linalg.norm(hand_position[2:] - target_height, axis=1, ord=2)
+        z_distance = np.linalg.norm(hand_position[2:] - target_height, ord=2)
 
         if not above_block and not arrived_to_block:
             reach_reward = -reach_distance_xy - 2.0 * z_distance
@@ -294,7 +278,7 @@ REWARD spec:
         is_raised = z_distance < 0.01
         pick_reward = min(target_height, selected_block[2]) if is_grasping else 0
 
-        place_distance = np.linalg.norm((selected_block - selected_goal), axis=1, ord=2)
+        place_distance = np.linalg.norm((selected_block - selected_goal), ord=2)
 
         c1 = 1000
         c2 = 0.01

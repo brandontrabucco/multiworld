@@ -45,6 +45,10 @@
         <site name="handGoal" pos="0 0.75 0.3" size="0.015"
               rgba="0 0.8 0 1"/>
     </worldbody>
+    <sensor>
+        <touch name='rightclaw_sensor' site='rightEndEffector'/>
+        <touch name='leftclaw_sensor' site='leftEndEffector'/>
+    </sensor>
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
         <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>

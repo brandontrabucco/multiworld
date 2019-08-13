@@ -16,8 +16,8 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             block_low=(-0.2, 0.55, 0.02),
             block_high=(0.2, 0.75, 0.02),
 
-            hand_low=(-0.2, 0.55, 0.05),
-            hand_high=(0.2, 0.75, 0.3),
+            hand_low=(0.0, 0.55, 0.3),
+            hand_high=(0.0, 0.55, 0.3),
 
             stack_goal_low=(-0.2, 0.55, 0.02),
             stack_goal_high=(0.2, 0.75, 0.02),
@@ -53,6 +53,11 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.stack_goal_low = np.array(stack_goal_low)
         self.stack_goal_high = np.array(stack_goal_high)
+
+        self.max_place_distance = max(
+            np.linalg.norm((self.stack_goal_high - self.block_low), ord=2),
+            np.linalg.norm((self.block_high - self.stack_goal_low), ord=2),
+        )
 
         self.fix_goal = fix_goal
         self.fixed_stack_goal = np.array(fixed_stack_goal)
@@ -225,24 +230,34 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             'state_desired_goal': goals}
 
     def compute_rewards(self, actions, obs):
+        # Required by HER-TD3
+        assert isinstance(obs, dict) == True
+        rewards = [
+            self.compute_reward(actions, {
+                key: value[i] for key, value in obs.items()})[0]
+            for i in range(obs["observation"].shape[0])
+        ]
+        return np.array(rewards)
+
+    def compute_reward(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
 
-        gripper_position = achieved_goals[:, 0]
-        hand_position = achieved_goals[:, 1:4]
-        block_one_position = achieved_goals[:, 4:7]
-        block_two_position = achieved_goals[:, 7:10]
-        block_three_position = achieved_goals[:, 10:13]
+        gripper_position = achieved_goals[0]
+        hand_position = achieved_goals[1:4]
+        block_one_position = achieved_goals[4:7]
+        block_two_position = achieved_goals[7:10]
+        block_three_position = achieved_goals[10:13]
 
-        gripper_goal = desired_goals[:, 0]
-        hand_goal = desired_goals[:, 1:4]
-        block_one_goal = desired_goals[:, 4:7]
-        block_two_goal = desired_goals[:, 7:10]
-        block_three_goal = desired_goals[:, 10:13]
+        gripper_goal = desired_goals[0]
+        hand_goal = desired_goals[1:4]
+        block_one_goal = desired_goals[4:7]
+        block_two_goal = desired_goals[7:10]
+        block_three_goal = desired_goals[10:13]
 
-        block_one_distance = np.linalg.norm((block_one_position - block_one_goal), axis=1, ord=2)
-        block_two_distance = np.linalg.norm((block_two_position - block_two_goal), axis=1, ord=2)
-        block_three_distance = np.linalg.norm((block_three_position - block_three_goal), axis=1, ord=2)
+        block_one_distance = np.linalg.norm((block_one_position - block_one_goal), ord=2)
+        block_two_distance = np.linalg.norm((block_two_position - block_two_goal), ord=2)
+        block_three_distance = np.linalg.norm((block_three_position - block_three_goal), ord=2)
 
         block_one_stacked = block_one_distance < 0.05
         block_two_stacked = block_two_distance < 0.05
@@ -257,19 +272,19 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             selected_block = block_two_position
             selected_goal = block_two_goal
             base_reward = base_reward - 500.0
-        elif not block_two_stacked:
+        elif not block_three_stacked:
             selected_block = block_three_position
             selected_goal = block_three_goal
             base_reward = base_reward - 500.0
 
-        reach_distance_xy = np.linalg.norm((selected_block[:2] - hand_position[:2]), axis=1, ord=2)
-        reach_distance = np.linalg.norm((selected_block - hand_position), axis=1, ord=2)
+        reach_distance_xy = np.linalg.norm((selected_block[:2] - hand_position[:2]), ord=2)
+        reach_distance = np.linalg.norm((selected_block - hand_position),  ord=2)
 
         above_block = reach_distance_xy < 0.05
         arrived_to_block = reach_distance < 0.05
 
         target_height = 0.3
-        z_distance = np.linalg.norm(hand_position[2:] - target_height, axis=1, ord=2)
+        z_distance = np.linalg.norm(hand_position[2:] - target_height, ord=2)
 
         if not above_block and not arrived_to_block:
             reach_reward = -reach_distance_xy - 2.0 * z_distance
@@ -282,7 +297,7 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         is_raised = z_distance < 0.01
         pick_reward = min(target_height, selected_block[2]) if is_grasping else 0
 
-        place_distance = np.linalg.norm((selected_block - selected_goal), axis=1, ord=2)
+        place_distance = np.linalg.norm((selected_block - selected_goal), ord=2)
 
         c1 = 1000
         c2 = 0.01

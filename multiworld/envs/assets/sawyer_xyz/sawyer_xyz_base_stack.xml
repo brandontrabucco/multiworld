@@ -130,6 +130,8 @@ Usage:
 
                                                 <body name="rightclaw" pos="0 0 -0.05" >
 
+                                                    <site name="rightEndEffector" pos="0.04 0 0" size="0.01" rgba='1 1 1 1' />
+
                                                     <geom name="rightclaw_it" condim="4" margin="0.001" type="box" user="0"
                                                           pos="0 0 0" size="0.045 0.015 0.003"  rgba="1 1 1 1.0"   />
 
@@ -145,6 +147,8 @@ Usage:
                                                 </body>
 
                                                 <body name="leftclaw" pos="0 0 0.05" >
+
+                                                    <site name="leftEndEffector" pos="0.04 0 0" size="0.01" rgba='1 1 1 1' />
 
                                                     <geom name="leftclaw_it" condim="4" margin="0.001" type="box" user="0"
                                                           pos="0 0 0" size="0.045 0.015 0.003"  rgba="0 1 1 1.0"  />
