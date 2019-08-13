@@ -16,8 +16,8 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             block_low=(-0.2, 0.55, 0.02),
             block_high=(0.2, 0.75, 0.02),
 
-            hand_low=(-0.2, 0.55, 0.05),
-            hand_high=(0.2, 0.75, 0.3),
+            hand_low=(0.0, 0.55, 0.3),
+            hand_high=(0.0, 0.55, 0.3),
 
             stack_goal_low=(-0.2, 0.55, 0.02),
             stack_goal_high=(0.2, 0.75, 0.02),
@@ -52,6 +52,11 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.stack_goal_low = np.array(stack_goal_low)
         self.stack_goal_high = np.array(stack_goal_high)
+
+        self.max_place_distance = max(
+            np.linalg.norm((self.stack_goal_high - self.block_low), ord=2),
+            np.linalg.norm((self.block_high - self.stack_goal_low), ord=2),
+        )
 
         self.fix_goal = fix_goal
         self.fixed_stack_goal = np.array(fixed_stack_goal)
@@ -214,45 +219,95 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
             'state_desired_goal': goals}
 
     def compute_rewards(self, actions, obs):
+        """
+
+REWARD spec:
+
+(1) reward policy for reaching at a fixed height at
+    the proper XY position above the block, with an open gripper
+
+(2) reward the policy for reaching down to the object
+    and closing the gripper
+
+(3) reward the policy for continuing to grasp the object
+    detected with a pressure sensor in Mujoco
+    at a target height
+
+(4) reward the policy for carrying the object to a desired XY location
+    continuing to grip the object
+
+(5) reward the policy for moving the object to the target place location
+    opening the gripper
+
+(6) reward the policy for reaching up from the drop position
+
+(7) repeat for up to K other blocks
+
+        """
+
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
 
-        hand_positions = achieved_goals[:, 1:4]
-        block_one_positions = achieved_goals[:, 4:7]
-        block_two_positions = achieved_goals[:, 7:10]
+        gripper_position = achieved_goals[:, 0]
+        hand_position = achieved_goals[:, 1:4]
+        block_one_position = achieved_goals[:, 4:7]
+        block_two_position = achieved_goals[:, 7:10]
 
-        hand_goals = desired_goals[:, 1:4]
-        block_one_goals = desired_goals[:, 4:7]
-        block_two_goals = desired_goals[:, 7:10]
+        gripper_goal = desired_goals[:, 0]
+        hand_goal = desired_goals[:, 1:4]
+        block_one_goal = desired_goals[:, 4:7]
+        block_two_goal = desired_goals[:, 7:10]
 
-        hand_goal_distances = np.linalg.norm(hand_goals - hand_positions, axis=1)
-        hand_block_one_distances = np.linalg.norm(
-            block_one_positions - hand_positions, axis=1)
-        hand_block_two_distances = np.linalg.norm(
-            block_two_positions - hand_positions, axis=1)
+        block_one_distance = np.linalg.norm((block_one_position - block_one_goal), axis=1, ord=2)
+        block_two_distance = np.linalg.norm((block_two_position - block_two_goal), axis=1, ord=2)
 
-        block_one_goal_distances = np.linalg.norm(
-            block_one_goals - block_one_positions, axis=1)
-        block_two_goal_distances = np.linalg.norm(
-            block_two_goals - block_two_positions, axis=1)
+        block_one_stacked = block_one_distance < 0.05
+        block_two_stacked = block_two_distance < 0.05
 
-        if self.use_sparse_reward:
-            hand_reward = -(hand_goal_distances >
-                            self.sparse_reward_threshold).astype(float)
-            block_one_reward = -(block_one_goal_distances >
-                                 self.sparse_reward_threshold).astype(float)
-            block_two_reward = -(block_two_goal_distances >
-                                 self.sparse_reward_threshold).astype(float)
-            additional_reward = 0.0
+        base_reward = 1000.0
+        if not block_one_stacked:
+            selected_block = block_one_position
+            selected_goal = block_one_goal
+            base_reward = base_reward - 500.0
+        elif not block_two_stacked:
+            selected_block = block_two_position
+            selected_goal = block_two_goal
+            base_reward = base_reward - 500.0
+
+        reach_distance_xy = np.linalg.norm((selected_block[:2] - hand_position[:2]), axis=1, ord=2)
+        reach_distance = np.linalg.norm((selected_block - hand_position), axis=1, ord=2)
+
+        above_block = reach_distance_xy < 0.05
+        arrived_to_block = reach_distance < 0.05
+
+        target_height = 0.3
+        z_distance = np.linalg.norm(hand_position[2:] - target_height, axis=1, ord=2)
+
+        if not above_block and not arrived_to_block:
+            reach_reward = -reach_distance_xy - 2.0 * z_distance
+        elif above_block and not arrived_to_block:
+            reach_reward = -reach_distance
         else:
-            hand_reward = -hand_goal_distances
-            block_one_reward = -block_one_goal_distances
-            block_two_reward = -block_two_goal_distances
-            additional_reward = -(hand_block_one_distances +
-                                  hand_block_two_distances) / 2.0
+            reach_reward = -reach_distance + max(gripper_position, 0)
 
-        return (hand_reward + block_one_reward +
-                block_two_reward + additional_reward)
+        is_grasping = (self.data.sensordata[0] > 0) and (self.data.sensordata[1] > 0)
+        is_raised = z_distance < 0.01
+        pick_reward = min(target_height, selected_block[2]) if is_grasping else 0
+
+        place_distance = np.linalg.norm((selected_block - selected_goal), axis=1, ord=2)
+
+        c1 = 1000
+        c2 = 0.01
+        c3 = 0.001
+        if is_raised and is_grasping:
+            place_reward = 1000 * (self.max_place_distance - place_distance) + c1 * (
+                        np.exp(-(place_distance ** 2) / c2) + np.exp(-(place_distance ** 2) / c3))
+            place_reward = max(place_reward, 0)
+        else:
+            place_reward = 0
+
+        return (base_reward + place_reward +
+                pick_reward + reach_reward)
 
     def get_diagnostics(self, paths, prefix=''):
         return OrderedDict()

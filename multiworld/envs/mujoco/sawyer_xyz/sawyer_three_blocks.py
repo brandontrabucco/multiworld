@@ -228,53 +228,74 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
 
-        hand_positions = achieved_goals[:, 1:4]
-        block_one_positions = achieved_goals[:, 4:7]
-        block_two_positions = achieved_goals[:, 7:10]
-        block_three_positions = achieved_goals[:, 10:13]
+        gripper_position = achieved_goals[:, 0]
+        hand_position = achieved_goals[:, 1:4]
+        block_one_position = achieved_goals[:, 4:7]
+        block_two_position = achieved_goals[:, 7:10]
+        block_three_position = achieved_goals[:, 10:13]
 
-        hand_goals = desired_goals[:, 1:4]
-        block_one_goals = desired_goals[:, 4:7]
-        block_two_goals = desired_goals[:, 7:10]
-        block_three_goals = desired_goals[:, 10:13]
+        gripper_goal = desired_goals[:, 0]
+        hand_goal = desired_goals[:, 1:4]
+        block_one_goal = desired_goals[:, 4:7]
+        block_two_goal = desired_goals[:, 7:10]
+        block_three_goal = desired_goals[:, 10:13]
 
-        hand_goal_distances = np.linalg.norm(hand_goals - hand_positions, axis=1)
-        hand_block_one_distances = np.linalg.norm(
-            block_one_positions - hand_positions, axis=1)
-        hand_block_two_distances = np.linalg.norm(
-            block_two_positions - hand_positions, axis=1)
-        hand_block_three_distances = np.linalg.norm(
-            block_three_positions - hand_positions, axis=1)
+        block_one_distance = np.linalg.norm((block_one_position - block_one_goal), axis=1, ord=2)
+        block_two_distance = np.linalg.norm((block_two_position - block_two_goal), axis=1, ord=2)
+        block_three_distance = np.linalg.norm((block_three_position - block_three_goal), axis=1, ord=2)
 
-        block_one_goal_distances = np.linalg.norm(
-            block_one_goals - block_one_positions, axis=1)
-        block_two_goal_distances = np.linalg.norm(
-            block_two_goals - block_two_positions, axis=1)
-        block_three_goal_distances = np.linalg.norm(
-            block_three_goals - block_three_positions, axis=1)
+        block_one_stacked = block_one_distance < 0.05
+        block_two_stacked = block_two_distance < 0.05
+        block_three_stacked = block_three_distance < 0.05
 
-        if self.use_sparse_reward:
-            hand_reward = -(hand_goal_distances >
-                            self.sparse_reward_threshold).astype(float)
-            block_one_reward = -(block_one_goal_distances >
-                                 self.sparse_reward_threshold).astype(float)
-            block_two_reward = -(block_two_goal_distances >
-                                 self.sparse_reward_threshold).astype(float)
-            block_three_reward = -(block_three_goal_distances >
-                                 self.sparse_reward_threshold).astype(float)
-            additional_reward = 0.0
+        base_reward = 1500.0
+        if not block_one_stacked:
+            selected_block = block_one_position
+            selected_goal = block_one_goal
+            base_reward = base_reward - 500.0
+        elif not block_two_stacked:
+            selected_block = block_two_position
+            selected_goal = block_two_goal
+            base_reward = base_reward - 500.0
+        elif not block_two_stacked:
+            selected_block = block_three_position
+            selected_goal = block_three_goal
+            base_reward = base_reward - 500.0
+
+        reach_distance_xy = np.linalg.norm((selected_block[:2] - hand_position[:2]), axis=1, ord=2)
+        reach_distance = np.linalg.norm((selected_block - hand_position), axis=1, ord=2)
+
+        above_block = reach_distance_xy < 0.05
+        arrived_to_block = reach_distance < 0.05
+
+        target_height = 0.3
+        z_distance = np.linalg.norm(hand_position[2:] - target_height, axis=1, ord=2)
+
+        if not above_block and not arrived_to_block:
+            reach_reward = -reach_distance_xy - 2.0 * z_distance
+        elif above_block and not arrived_to_block:
+            reach_reward = -reach_distance
         else:
-            hand_reward = -hand_goal_distances
-            block_one_reward = -block_one_goal_distances
-            block_two_reward = -block_two_goal_distances
-            block_three_reward = -block_three_goal_distances
-            additional_reward = -(hand_block_one_distances +
-                                  hand_block_two_distances +
-                                  hand_block_three_distances) / 3.0
+            reach_reward = -reach_distance + max(gripper_position, 0)
 
-        return (hand_reward + block_one_reward +
-                block_two_reward + block_three_reward +
-                additional_reward)
+        is_grasping = (self.data.sensordata[0] > 0) and (self.data.sensordata[1] > 0)
+        is_raised = z_distance < 0.01
+        pick_reward = min(target_height, selected_block[2]) if is_grasping else 0
+
+        place_distance = np.linalg.norm((selected_block - selected_goal), axis=1, ord=2)
+
+        c1 = 1000
+        c2 = 0.01
+        c3 = 0.001
+        if is_raised and is_grasping:
+            place_reward = 1000 * (self.max_place_distance - place_distance) + c1 * (
+                        np.exp(-(place_distance ** 2) / c2) + np.exp(-(place_distance ** 2) / c3))
+            place_reward = max(place_reward, 0)
+        else:
+            place_reward = 0
+
+        return (base_reward + place_reward +
+                pick_reward + reach_reward)
 
     def get_diagnostics(self, paths, prefix=''):
         return OrderedDict()
