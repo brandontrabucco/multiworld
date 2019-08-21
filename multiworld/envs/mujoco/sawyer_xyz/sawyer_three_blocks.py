@@ -263,19 +263,19 @@ class SawyerThreeBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         block_two_stacked = block_two_distance < 0.05
         block_three_stacked = block_three_distance < 0.05
 
-        base_reward = 1500.0
+        base_reward = 3.0
         if not block_one_stacked:
             selected_block = block_one_position
             selected_goal = block_one_goal
-            base_reward = base_reward - 500.0
+            base_reward = base_reward - 1.0
         elif not block_two_stacked:
             selected_block = block_two_position
             selected_goal = block_two_goal
-            base_reward = base_reward - 500.0
+            base_reward = base_reward - 1.0
         elif not block_three_stacked:
             selected_block = block_three_position
             selected_goal = block_three_goal
-            base_reward = base_reward - 500.0
+            base_reward = base_reward - 1.0
 
         reach_distance_xy = np.linalg.norm((selected_block[:2] - hand_position[:2]), ord=2)
         reach_distance = np.linalg.norm((selected_block - hand_position),  ord=2)
