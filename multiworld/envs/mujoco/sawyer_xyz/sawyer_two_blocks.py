@@ -249,6 +249,8 @@ class SawyerTwoBlocksXYZEnv(MultitaskEnv, SawyerXYZEnv):
         block_two_stacked = block_two_distance < 0.05
 
         base_reward = 1000.0
+        selected_block = block_two_position
+        selected_goal = block_two_goal
         if not block_one_stacked:
             selected_block = block_one_position
             selected_goal = block_one_goal
