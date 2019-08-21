@@ -35,7 +35,7 @@ def q_mult(a, b): # multiply two quaternion
 
 
 class AntEnv(mujoco_env.MujocoEnv, utils.EzPickle):
-    FILE = "ant.xml"
+    FILE = "ant/ant.xml"
     ORI_IND = 3
 
     def __init__(self, file_path=None, expose_all_qpos=True,

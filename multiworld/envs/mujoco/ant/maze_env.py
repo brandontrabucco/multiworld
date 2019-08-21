@@ -23,13 +23,16 @@ import numpy as np
 import gym
 import random
 
-from mineral.core.envs.contrib import maze_env_utils
+from multiworld.envs.mujoco.ant import maze_env_utils
+
+from multiworld.envs.env_util import ENV_ASSET_DIR
+from multiworld.core.serializable import Serializable
 
 # Directory that contains mujoco xml files.
-MODEL_DIR = 'mineral/core/envs/contrib/assets'
+MODEL_DIR = ENV_ASSET_DIR
 
 
-class MazeEnv(gym.Env):
+class MazeEnv(gym.Env, Serializable):
     MODEL_CLASS = None
 
     MAZE_HEIGHT = None
@@ -49,6 +52,7 @@ class MazeEnv(gym.Env):
             manual_collision=False,
             *args,
             **kwargs):
+        self.quick_init(locals())
         self._maze_id = maze_id
 
         model_cls = self.__class__.MODEL_CLASS
@@ -233,6 +237,7 @@ class MazeEnv(gym.Env):
         tree.write(file_path)
 
         self.wrapped_env = model_cls(*args, file_path=file_path, **kwargs)
+        self.reset()
 
     def get_ori(self):
         return self.wrapped_env.get_ori()

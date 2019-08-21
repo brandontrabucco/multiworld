@@ -13,8 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
-from mineral.core.envs.contrib.maze_env import MazeEnv
-from mineral.core.envs.contrib.ant import AntEnv
+from multiworld.envs.mujoco.ant.maze_env import MazeEnv
+from multiworld.envs.mujoco.ant.ant import AntEnv
 
 
 class AntMazeEnv(MazeEnv):
