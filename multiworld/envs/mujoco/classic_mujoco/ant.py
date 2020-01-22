@@ -257,6 +257,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         else:
             done = False
 
+        info['flip_time'] = 0.0
+        info['flip_tau'] = 0.0
+        
         if not flipped_before_step and self.is_flipped:
             info['flip_time'] = self.timesteps_so_far
             if self.tau is not None:
@@ -1204,6 +1207,19 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
     def update_subgoals(self, subgoals, **kwargs):
         self.subgoals = subgoals
+        
+    def get_image(self, width=84, height=84, camera_name=None):
+        return self.get_image_plt(
+            vals=None,
+            vmin=None, 
+            vmax=None,
+            extent=None,
+            small_markers=False,
+            draw_walls=True, 
+            draw_state=True, 
+            draw_goal=True, 
+            draw_subgoals=True,
+            imsize=width)
 
     def get_image_plt(
             self,
