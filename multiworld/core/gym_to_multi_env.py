@@ -24,6 +24,11 @@ class GymToMultiEnv(ProxyEnv): # MultitaskEnv):
         super().__init__(wrapped_env)
 
         obs_box = wrapped_env.observation_space
+
+        # handle RLLAB
+        if not isinstance(obs_box, Box):
+            obs_box = Box(obs_box.low, obs_box.high)
+
         self.observation_space = Dict([
             ('observation', obs_box),
             ('state_observation', obs_box),
@@ -87,10 +92,18 @@ class MujocoGymToMultiEnv(GymToMultiEnv):
             self.viewer = None
 
     def _get_viewer(self):
-        if self.viewer is None:
-            self.viewer = mujoco_py.MjViewer(self.sim)
-            self.viewer_setup()
-        return self.viewer
+        is_rllab = not hasattr(self, 'sim')
+
+        if not is_rllab:
+            if self.viewer is None:
+                self.viewer = mujoco_py.MjViewer(self.sim)
+                self.viewer_setup()
+            return self.viewer
+
+        # handle RLLAB
+        else:
+            return self.get_viewer()
+
 
     def get_body_com(self, body_name):
         return self.data.get_body_xpos(body_name)
@@ -109,10 +122,20 @@ class MujocoGymToMultiEnv(GymToMultiEnv):
         )
 
     def initialize_camera(self, init_fctn):
-        sim = self.sim
-        viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=self.device_id)
-        init_fctn(viewer.cam)
-        sim.add_render_context(viewer)
+        is_rllab = not hasattr(self, 'sim')
+
+        if not is_rllab:
+            sim = self.sim
+            viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=self.device_id)
+            init_fctn(viewer.cam)
+            sim.add_render_context(viewer)
+
+        # handle RLLAB
+        else:
+            pass
 
     def get_diagnostics(self, paths, **kwargs):
         return {}
+
+    def update_subgoals(self, subgoals):
+        self.subgoals = subgoals
